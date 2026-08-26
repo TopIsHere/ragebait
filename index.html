@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RNG Ragebait</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0c0d12;color:#fff;font-family:Arial,sans-serif;overflow:hidden}
+#top{height:62px;background:#171923;border-bottom:1px solid #343746;display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:15px}
+#game{height:calc(100vh - 62px);display:grid;place-items:center;position:relative;overflow:hidden}
+.card{width:min(760px,92vw);min-height:410px;background:#1a1d28;border:1px solid #3a3e50;border-radius:22px;padding:34px;text-align:center;box-shadow:0 20px 70px #0009}
+h1{font-size:clamp(30px,5vw,54px);margin:0 0 10px}.lvl{font-size:18px;color:#ffcc66}.event{min-height:32px;color:#ff7180;font-weight:bold;margin:15px}
+button{border:0;border-radius:12px;padding:15px 28px;margin:7px;background:#e84c5b;color:white;font-weight:900;font-size:17px;cursor:pointer}
+button:hover{filter:brightness(1.15)}.green{background:#31b878}.blue{background:#5088ec}
+.bar{height:26px;background:#090a0e;border:1px solid #424757;border-radius:20px;overflow:hidden;margin:25px}.fill{height:100%;width:0;background:#eab308}
+.small{font-size:12px;color:#9298aa}.shake{animation:shake .22s linear 2}@keyframes shake{25%{transform:translateX(-9px)}75%{transform:translateX(9px)}}
+#log{position:absolute;bottom:12px;left:12px;right:12px;text-align:center;color:#7e8599;font-size:12px}
+</style>
+</head>
+<body>
+<div id="top"><b>🎲 RNG RAGEBAIT</b><b>Level <span id="lv">1</span> / 20</b><b>🍀 Luck: <span id="luck">100</span>%</b></div>
+<div id="game"><div id="log">10% skill. 90% questionable decisions by the universe.</div></div>
+<script>
+(function(){
+const game=document.getElementById('game'), lvEl=document.getElementById('lv'), luckEl=document.getElementById('luck');
+let level=1,luck=100,locked=false,eventTimer=null;
+
+function card(title,text){
+ game.innerHTML='<div class="card"><h1>'+title+'</h1><div class="lvl">LEVEL '+level+'</div><p>'+text+'</p><div class="event" id="event"></div><div id="content"></div><div class="small">Every action may be sabotaged by RNG.</div></div><div id="log">10% skill. 90% questionable decisions by the universe.</div>';
+ return document.getElementById('content');
+}
+function msg(t){const e=document.getElementById('event');if(e)e.textContent=t}
+function setLevel(n){level=Math.max(1,Math.min(20,n));lvEl.textContent=level;render()}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function chaos(reason){
+ if(locked)return; locked=true;
+ luck=Math.max(0,luck-rand(1,8));luckEl.textContent=luck;
+ const roll=Math.random(), old=level;
+ if(roll<.32){ level=1; msg('💀 '+reason+' — TOTAL RESET TO LEVEL 1'); }
+ else if(roll<.62){ level=Math.max(1,level-rand(1,Math.min(8,level-1))); msg('⬇️ '+reason+' — SENT BACK TO LEVEL '+level); }
+ else if(roll<.82){ level=Math.min(20,level+rand(1,4)); msg('🍀 '+reason+' — RANDOM SKIP TO LEVEL '+level); }
+ else { msg('🌀 '+reason+' — NOTHING HAPPENED. Somehow.'); }
+ lvEl.textContent=level;
+ setTimeout(()=>{locked=false;render()},900);
+}
+function attempt(){
+ if(locked)return;
+ const difficulty=level>=19?.78:level>=15?.60:.40;
+ if(Math.random()<difficulty){chaos('RNG OBJECTED');return}
+ level++;
+ luck=Math.min(100,luck+rand(0,3));luckEl.textContent=luck;
+ render();
+}
+function randomEvent(){
+ if(locked)return;
+ const r=Math.random();
+ if(r<.08){level=20;msg('🌟 0.8% COSMIC LUCK! INSTANT LEVEL 20');lvEl.textContent=level;setTimeout(render,700);return}
+ if(r<.25){chaos('COSMIC RAY DETECTED');return}
+ if(r<.42){level=Math.max(1,level-rand(1,3));msg('📉 SERVER DESYNC');lvEl.textContent=level;setTimeout(render,700);return}
+ if(r<.58){level=Math.min(20,level+rand(1,3));msg('🎉 ACCIDENTAL LEVEL SKIP');lvEl.textContent=level;setTimeout(render,700);return}
+ if(r<.75){msg('🫥 BUTTON MALFUNCTION');document.querySelectorAll('button').forEach(b=>b.style.visibility='hidden');setTimeout(render,900)}
+}
+function makeBasic(){
+ const c=card('😡 Good luck.','Complete this extremely simple task.');
+ const b=document.createElement('button');b.textContent='CONTINUE';c.appendChild(b);
+ b.onclick=attempt;
+ // 28% chance that merely interacting gets punished.
+ b.onmouseenter=()=>{if(Math.random()<.28)chaos('TOUCHED THE BUTTON WRONG')};
+}
+function render(){
+ clearTimeout(eventTimer);locked=false;lvEl.textContent=level;
+ if(level===20){finalLevel();return}
+ if(level===1){makeBasic()}
+ else if(level===2){
+  const c=card('🎯 Click Continue','You have approximately enough skill for this.');
+  const b=document.createElement('button');b.textContent='CONTINUE';c.appendChild(b);
+  b.onclick=attempt;
+  b.onmouseenter=()=>{if(Math.random()<.55){b.style.position='fixed';b.style.left=rand(5,80)+'vw';b.style.top=rand(10,80)+'vh'}};
+ } else if(level===3){
+  const c=card('🔢 Count to 3','Click the button three times. Unless reality disagrees.');
+  let n=0,b=document.createElement('button');b.textContent='0 / 3';c.appendChild(b);
+  b.onclick=()=>{if(Math.random()<.38){n=0;b.textContent='0 / 3';chaos('COUNTER CORRUPTED')}else{n++;b.textContent=n+' / 3';if(n>=3)attempt()}};
+ } else if(level===4){
+  const c=card('🎲 Choose wisely','One button advances. RNG chooses which one AFTER you click.');
+  for(let i=0;i<4;i++){let b=document.createElement('button');b.textContent='CONTINUE';c.appendChild(b);b.onclick=()=>Math.random()<.22?attempt():chaos('WRONG RANDOM BUTTON')}
+ } else if(level===5){
+  const c=card('⏳ Wait 3 seconds','Do nothing. Probably.');
+  let ok=true;c.onclick=()=>{ok=false};setTimeout(()=>{if(ok)attempt();else chaos('YOU DID SOMETHING')},3000);
+ } else if(level===6){
+  const c=card('🧨 Safe button','Only one click needed. 50/50.');
+  const b=document.createElement('button');b.textContent='SAFE';c.appendChild(b);b.onclick=()=>Math.random()<.5?attempt():chaos('NOT SAFE');
+ } else if(level===7){
+  const c=card('🏆 Claim reward','Your reward might be a setback.');
+  const b=document.createElement('button');b.textContent='CLAIM +5 LEVELS';b.className='green';c.appendChild(b);b.onclick=()=>{if(Math.random()<.15){level=Math.min(20,level+5);render()}else chaos('REWARD REVERSED')};
+ } else if(level===8){
+  const c=card('🎰 RNG CHECKPOINT','Press the lever until the universe accepts you.');
+  const b=document.createElement('button');b.textContent='🎰 PULL LEVER';c.appendChild(b);
+  b.onclick=()=>{let r=Math.random();if(r<.08)attempt();else if(r<.12){level=20;render()}else chaos('LEVER UNHAPPY')};
+ } else if(level===9){
+  const c=card('🧠 Skill test','Press the button at exactly the right moment.');
+  const b=document.createElement('button');b.textContent='NOW?';c.appendChild(b);let start=performance.now();
+  b.onclick=()=>{let d=performance.now()-start;if(d>900&&d<1300)attempt();else chaos('TIMING WAS OFF BY '+Math.round(Math.abs(d-1100))+'ms')};
+ } else if(level===10){
+  const c=card('🎉 HALF WAY!','This button has a chance to work.');
+  const b=document.createElement('button');b.textContent='CONTINUE';c.appendChild(b);b.onclick=()=>Math.random()<.35?attempt():chaos('HALF WAY WAS A LIE');
+ } else if(level===11||level===12||level===13){
+  const c=card('🌪️ Random Task','The instructions are optional. RNG is not.');
+  const b=document.createElement('button');b.textContent='DO THE THING';c.appendChild(b);b.onclick=()=>Math.random()<.3?attempt():chaos('TASK EVALUATION FAILED');
+ } else if(level===14){
+  const c=card('🎁 Mystery Box','Open it.');
+  const b=document.createElement('button');b.textContent='OPEN';c.appendChild(b);b.onclick=()=>{let r=Math.random();if(r<.2)attempt();else if(r<.3){level=Math.min(19,level+3);render()}else chaos('BOX CONTAINED REGRET')};
+ } else if(level===15){
+  const c=card('🔥 You are close','The game has noticed.');
+  const b=document.createElement('button');b.textContent='CONTINUE CAREFULLY';c.appendChild(b);b.onclick=()=>Math.random()<.18?attempt():chaos('ANTI-WIN PROTECTION ACTIVATED');
+ } else if(level>=16&&level<=18){
+  const c=card('💀 FINAL STRETCH','Your odds are getting suspicious.');
+  const b=document.createElement('button');b.textContent='ROLL FOR PROGRESS';c.appendChild(b);
+  b.onclick=()=>Math.random()<.12?attempt():chaos('RNG SAYS NO');
+ } else if(level===19){
+  const c=card('🏆 YOU FINALLY WON!','...access Level 20.');
+  const b=document.createElement('button');b.textContent='🔒 ACCESS LEVEL 20';b.className='green';c.appendChild(b);
+  b.onclick=()=>Math.random()<.06?setLevel(20):chaos('ACCESS DENIED BY RNG');
+ }
+ eventTimer=setTimeout(randomEvent,rand(3500,8500));
+}
+function finalLevel(){
+ clearTimeout(eventTimer);
+ const c=card('🔒 LEVEL 20','One final RNG roll. 5% chance to actually win.');
+ const b=document.createElement('button');b.textContent='🎲 ROLL';b.className='green';c.appendChild(b);
+ b.onclick=()=>{
+  if(Math.random()<.05){
+   game.innerHTML='<div class="card"><h1>🏆 YOU WON.</h1><p>Against all probability, the universe allowed it.</p><p>Final Luck: '+luck+'%</p><button id="again">PLAY AGAIN 😈</button></div>';
+   document.getElementById('again').onclick=()=>{level=1;luck=100;luckEl.textContent=100;render()}
+  } else chaos('FINAL ROLL FAILED');
+ };
+}
+render();
+})();
+</script>
+</body></html>
